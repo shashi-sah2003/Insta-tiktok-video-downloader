@@ -38,7 +38,7 @@
 
 ## Running the Project
 
-To run the project, execute the main script:
+To run the project, execute this script:
 
 ```sh
 python monitor.py
