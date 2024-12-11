@@ -12,6 +12,7 @@ BASE_API_URL = "https://api.socialverseapp.com"
 
 os.makedirs(VIDEO_DIR, exist_ok=True)
 
+# A decorator to retry a function up to 3 times with a delay of 2 seconds between attempts.
 def retry(func):
     async def wrapper(*args, **kwargs):
         retries = 3
@@ -26,11 +27,12 @@ def retry(func):
         raise Exception(f"Failed after {retries} retries in {func.__name__}")
     return wrapper
 
-# Manual event trigger for watchdog
+# Manually triggers a watchdog event for a given file path.
 async def trigger_watchdog_event(file_path):
     print(f"Triggering watchdog event for: {file_path}")
     await process_file(file_path)
 
+# Downloads an Instagram video from the given URL and saves it to the video directory.
 async def download_instagram_video(url):
     ydl_opts = {
         'outtmpl': os.path.join(VIDEO_DIR, '%(id)s.%(ext)s'),
@@ -42,6 +44,7 @@ async def download_instagram_video(url):
         video_file = os.path.join(VIDEO_DIR, f"{info_dict['id']}.mp4")
         return video_file
 
+# Downloads a TikTok video from the given URL and saves it to the video directory.
 async def download_tiktok_video(video_url):
     try:
         async with AsyncTikTokAPI() as api:
@@ -59,6 +62,7 @@ async def download_tiktok_video(video_url):
     except Exception as e:
         print(f"Error downloading TikTok video: {e}")
 
+# Fetches an upload URL from the server.
 @retry
 async def get_upload_url():
     url = f"{BASE_API_URL}/posts/generate-upload-url"
@@ -75,6 +79,7 @@ async def get_upload_url():
             print(f"Network error during get_upload_url: {e}")
             return None
 
+# Uploads a video file to the server using the provided upload URL.
 @retry
 async def upload_video(file_path, upload_url):
     file_size = os.path.getsize(file_path)
@@ -98,6 +103,7 @@ async def upload_video(file_path, upload_url):
     except Exception as e:
         print(f"Error uploading {file_path}: {e}")
 
+# Creates a post on the server with the given title and file hash.
 @retry
 async def create_post(title, file_hash, category_id=1):
     url = f"{BASE_API_URL}/posts"
@@ -120,6 +126,7 @@ async def create_post(title, file_hash, category_id=1):
         except aiohttp.ClientError as e:
             print(f"Network error during create_post: {e}")
 
+# Processes a video file by uploading it and creating a post, then deletes the local file.
 async def process_file(file_path):
     print(f"Processing video: {file_path}")
     
